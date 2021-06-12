@@ -44,9 +44,6 @@ func run_movement(direction):
 	handle_move(direction)
 	yield(self, "move_done")
 	
-	if is_winning:
-		Globals.emit_signal("next_level")
-	
 	if is_falling:
 		Globals.emit_signal("reset_level")
 	
@@ -56,6 +53,9 @@ func run_movement(direction):
 	yield(hud_tween, "tween_all_completed")
 	
 	is_running = false
+	
+	if is_winning:
+		Globals.emit_signal("next_level")
 
 
 func run_undo():
@@ -66,9 +66,6 @@ func run_undo():
 	handle_move(direction)
 	yield(self, "move_done")
 	
-	if is_winning:
-		Globals.emit_signal("next_level")
-	
 	if is_falling:
 		Globals.emit_signal("reset_level")
 	
@@ -76,6 +73,10 @@ func run_undo():
 	yield(parent, "remove_stack_done")
 	
 	is_running = false
+	
+	if is_winning:
+		Globals.emit_signal("next_level")
+
 
 func run_stack():
 	is_running = true
@@ -91,13 +92,13 @@ func run_stack():
 		parent.remove_stack_hud()
 		yield(parent, "remove_stack_done")
 	
-	if is_winning:
-		Globals.emit_signal("next_level")
-	
 	if is_falling:
 		Globals.emit_signal("reset_level")
 	
 	is_running = false
+	
+	if is_winning:
+		Globals.emit_signal("next_level")
 
 
 func handle_move(direction):

@@ -31,12 +31,7 @@ func add_stack_hud(direction):
 	var stack = $CanvasLayer/Control/Stack
 	
 	var direction_indicator = DIRECTION_INDICATOR.instance()
-	
-	match direction:
-		Vector2.UP: direction_indicator.arrow_direction = 0
-		Vector2.DOWN: direction_indicator.arrow_direction = 1
-		Vector2.RIGHT: direction_indicator.arrow_direction = 2
-		Vector2.LEFT: direction_indicator.arrow_direction = 3
+	direction_indicator.rect_rotation = int(rad2deg(Vector2.ZERO.angle_to_point(direction))) - 90
 	
 	var stack_child_count = stack.get_child_count()
 	if stack_child_count > 0:
