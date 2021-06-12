@@ -28,6 +28,7 @@ func _process(_delta):
 		var direction = get_input_direction()
 		if direction and move_stack.size() < parent.max_stack:
 			run_movement(direction)
+			parent.add_stack_hud(direction)
 			return
 
 
@@ -53,9 +54,12 @@ func run_stack():
 		handle_move(direction)
 		yield(self, "move_done")
 		
+		parent.remove_stack_hud()
+		yield(get_tree(), "idle_frame")
+		
 		if is_falling: break
 		
-#		yield(get_tree().create_timer(.2), "timeout")
+		yield(get_tree().create_timer(.2), "timeout")
 		
 	is_running = false
 	
