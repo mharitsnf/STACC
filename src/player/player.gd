@@ -9,8 +9,10 @@ onready var spawn_pos = parent.get_node("SpawnPosition")
 var move_stack = []
 var is_running = false
 var is_falling = false
+var is_winning = false
 
 signal move_done
+
 
 func _ready():
 	var _e1 = connect("move_done", self, "_on_move_done")
@@ -23,6 +25,10 @@ func _process(_delta):
 	if not is_running:
 		if Input.is_action_just_pressed("run_stack"):
 			run_stack()
+			return
+		
+		if Input.is_action_just_pressed("undo"):
+			run_undo()
 			return
 	
 		var direction = get_input_direction()
@@ -41,6 +47,29 @@ func run_movement(direction):
 	move_stack.append(direction)
 	is_running = false
 	
+	if is_winning:
+		Globals.emit_signal("next_level")
+	
+	if is_falling:
+		Globals.emit_signal("reset_level")
+
+
+func run_undo():
+	is_running = true
+	
+	var direction = -1 * move_stack.pop_back()
+	
+	handle_move(direction)
+	yield(self, "move_done")
+	
+	parent.remove_stack_hud('back')
+	yield(get_tree(), "idle_frame")
+	
+	is_running = false
+	
+	if is_winning:
+		Globals.emit_signal("next_level")
+	
 	if is_falling:
 		Globals.emit_signal("reset_level")
 
@@ -54,14 +83,17 @@ func run_stack():
 		handle_move(direction)
 		yield(self, "move_done")
 		
+		if is_falling: break
+		
 		parent.remove_stack_hud()
 		yield(get_tree(), "idle_frame")
 		
-		if is_falling: break
-		
-		yield(get_tree().create_timer(.2), "timeout")
+		yield(get_tree().create_timer(.1), "timeout")
 		
 	is_running = false
+	
+	if is_winning:
+		Globals.emit_signal("next_level")
 	
 	if is_falling:
 		Globals.emit_signal("reset_level")
@@ -88,8 +120,9 @@ func handle_move(direction):
 		Obstacle:
 			hit_obstacle()
 			yield($AnimationPlayer, "animation_finished")
-			
-	emit_signal("move_done", falling)
+	
+	var winning = parent.check_win(position)
+	emit_signal("move_done", falling, winning)
 
 
 func move_to(direction):
@@ -117,5 +150,6 @@ func _on_reset_level():
 	set_physics_process(false)
 
 
-func _on_move_done(falling):
+func _on_move_done(falling, winning):
 	is_falling = falling
+	is_winning = winning

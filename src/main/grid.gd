@@ -5,18 +5,24 @@ const DIRECTION_INDICATOR = preload("res://src/HUD/DirectionIndicator.tscn")
 
 export var level_name = ''
 export var max_stack = 3
-export (String) var level_path
+
+export (String) var current_path
+export (String) var next_scene
 
 
 func _ready():
-	assert(level_path)
+	assert(current_path)
 	
-	Globals.current_level_path = level_path
+	Globals.current_level_path = current_path
 	$CanvasLayer/Control/Label.text = str(max_stack)
 
 
 func request_next_position(pos, direction):
 	return get_cellv(world_to_map(pos) + direction)
+
+
+func check_win(pos):
+	return world_to_map(pos) == world_to_map($Goal.position)
 
 
 func add_stack_hud(direction):
@@ -36,5 +42,6 @@ func add_stack_hud(direction):
 	$CanvasLayer/Control/HBoxContainer.add_child(direction_indicator)
 
 
-func remove_stack_hud():
-	$CanvasLayer/Control/HBoxContainer.get_child(0).queue_free()
+func remove_stack_hud(target = 'front'):
+	var idx = $CanvasLayer/Control/HBoxContainer.get_child_count() - 1 if target == 'back' else 0
+	$CanvasLayer/Control/HBoxContainer.get_child(idx).queue_free()
