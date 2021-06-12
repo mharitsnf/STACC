@@ -1,7 +1,7 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://src/levels/LevelTest1.tscn" type="PackedScene" id=1]
-[ext_resource path="res://src/main/grid.gd" type="Script" id=2]
+[ext_resource path="res://assets/transition.png" type="Texture" id=2]
 [ext_resource path="res://assets/spritesheet.png" type="Texture" id=3]
 [ext_resource path="res://src/main/root.gd" type="Script" id=4]
 
@@ -35,10 +35,65 @@
 1/shapes = [  ]
 1/z_index = 0
 
-[sub_resource type="ShaderMaterial" id=3]
+[sub_resource type="Shader" id=2]
+code = "shader_type canvas_item;
+render_mode unshaded;
 
-[sub_resource type="ViewportTexture" id=2]
+uniform float cutoff : hint_range(0.0, 1.0);
+uniform float smooth_size : hint_range(0.0, 1.0);
+uniform sampler2D mask : hint_albedo;
+
+uniform vec4 standby_color : hint_color;
+
+void fragment()
+{
+	vec4 screen = texture(TEXTURE, UV);
+	float value = texture(mask, UV).r;
+	float mix_val = smoothstep(cutoff, cutoff + smooth_size, value * (1.0 - smooth_size) + smooth_size);
+	COLOR = mix(screen, standby_color, mix_val);
+}"
+
+[sub_resource type="ShaderMaterial" id=3]
+shader = SubResource( 2 )
+shader_param/cutoff = 1.0
+shader_param/smooth_size = 0.5
+shader_param/standby_color = null
+shader_param/mask = ExtResource( 2 )
+
+[sub_resource type="ViewportTexture" id=4]
 viewport_path = NodePath("ViewportContainer/Viewport")
+
+[sub_resource type="Animation" id=5]
+resource_name = "hide"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:material:shader_param/cutoff")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.5 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ 1.0, 0.0 ]
+}
+
+[sub_resource type="Animation" id=6]
+resource_name = "show"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:material:shader_param/cutoff")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.5 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ 0.0, 1.0 ]
+}
 
 [node name="Game" type="Node"]
 script = ExtResource( 4 )
@@ -58,16 +113,17 @@ render_target_update_mode = 3
 
 [node name="LevelTest1" parent="ViewportContainer/Viewport" instance=ExtResource( 1 )]
 tile_set = SubResource( 1 )
-cell_size = Vector2( 32, 32 )
-format = 1
-script = ExtResource( 2 )
 
 [node name="Output" type="TextureRect" parent="."]
 material = SubResource( 3 )
 margin_right = 40.0
 margin_bottom = 40.0
-texture = SubResource( 2 )
+texture = SubResource( 4 )
 flip_v = true
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Output"]
+anims/hide = SubResource( 5 )
+anims/show = SubResource( 6 )
