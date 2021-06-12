@@ -7,7 +7,7 @@ tile_data = PoolIntArray( 131079, 0, 0, 131080, 0, 0, 196616, 0, 0, 196617, 0, 0
 current_path = "res://src/levels/LevelTest1.tscn"
 next_scene = "res://src/levels/LevelTest2.tscn"
 
-[node name="Goal" parent="." index="1"]
+[node name="Goal" parent="." index="0"]
 position = Vector2( 192, 192 )
 
 [node name="SpawnPosition" parent="." index="2"]

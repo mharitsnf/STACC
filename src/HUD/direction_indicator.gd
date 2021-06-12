@@ -16,3 +16,9 @@ func _ready():
 	var used_path = TEXTURES[direction]
 	var tex = load(used_path)
 	texture = tex
+	$AnimationPlayer.play("show")
+
+func destroy():
+	$AnimationPlayer.play("hide")
+	yield($AnimationPlayer, "animation_finished")
+	queue_free()

@@ -44,4 +44,5 @@ func add_stack_hud(direction):
 
 func remove_stack_hud(target = 'front'):
 	var idx = $CanvasLayer/Control/HBoxContainer.get_child_count() - 1 if target == 'back' else 0
-	$CanvasLayer/Control/HBoxContainer.get_child(idx).queue_free()
+	var indicator = $CanvasLayer/Control/HBoxContainer.get_child(idx)
+	indicator.destroy()

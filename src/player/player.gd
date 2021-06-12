@@ -88,7 +88,7 @@ func run_stack():
 		parent.remove_stack_hud()
 		yield(get_tree(), "idle_frame")
 		
-		yield(get_tree().create_timer(.1), "timeout")
+		yield(get_tree().create_timer(.5), "timeout")
 		
 	is_running = false
 	
