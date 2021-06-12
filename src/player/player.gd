@@ -1,7 +1,7 @@
 extends Node2D
 
 
-enum { Empty = -1, Ground, Obstacle }
+enum { Empty = -1, Ground, Obstacle, CW, CCW } # ijo CW oren CCW
 
 onready var parent : TileMap = get_parent()
 onready var spawn_pos = parent.get_node("SpawnPosition")
@@ -24,6 +24,7 @@ func _ready():
 func _process(_delta):
 	if not is_running:
 		if Input.is_action_just_pressed("run_stack"):
+			print(move_stack)
 			run_stack()
 			return
 		
@@ -83,6 +84,7 @@ func run_stack():
 	
 	while not move_stack.empty():
 		var direction = move_stack.pop_front()
+		print(direction)
 		
 		handle_move(direction)
 		yield(self, "move_done")
@@ -101,7 +103,7 @@ func run_stack():
 		Globals.emit_signal("next_level")
 
 
-func handle_move(direction):
+func handle_move(direction, undoing = false):
 	var next_cell_type = parent.request_next_position(position, direction)
 	var falling = false
 	
@@ -116,8 +118,23 @@ func handle_move(direction):
 		
 		Ground:
 			# Move and run move animation
+			$AudioController.play_walk()
 			move_to(direction)
 			yield($Tween, "tween_all_completed")
+		
+		CW:
+			$AudioController.play_walk()
+			move_to(direction)
+			yield($Tween, "tween_all_completed")
+			rotate_stack('CW')
+			yield(parent, 'rotate_done')
+		
+		CCW:
+			$AudioController.play_walk()
+			move_to(direction)
+			yield($Tween, "tween_all_completed")
+			rotate_stack('CCW')
+			yield(parent, 'rotate_done')
 		
 		Obstacle:
 			hit_obstacle()
@@ -131,6 +148,17 @@ func move_to(direction):
 	var new_pos = parent.map_to_world(parent.world_to_map(position) + direction)
 	$Tween.interpolate_property(self, 'position', position, new_pos, .3, Tween.TRANS_EXPO, Tween.EASE_OUT)
 	$Tween.start()
+
+
+func rotate_stack(direction):
+	var rotate_amount = 90 if direction == 'CW' else -90
+	
+	for i in range(move_stack.size()):
+		move_stack[i] = move_stack[i].rotated(deg2rad(rotate_amount))
+	
+	print(move_stack)
+	
+	parent.rotate_stack_hud(direction)
 
 
 func hit_obstacle():
@@ -155,4 +183,6 @@ func _on_reset_level():
 func _on_move_done(falling, winning):
 	is_falling = falling
 	is_winning = winning
-	
+
+
+
