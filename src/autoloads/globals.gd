@@ -11,3 +11,4 @@ signal next_level
 
 func _unused():
 	emit_signal("reset_level")
+	emit_signal("next_level")

@@ -27,31 +27,35 @@ func _process(_delta):
 			run_stack()
 			return
 		
-		if Input.is_action_just_pressed("undo"):
+		if Input.is_action_just_pressed("undo") and move_stack.size() > 0:
 			run_undo()
 			return
 	
 		var direction = get_input_direction()
 		if direction and move_stack.size() < parent.max_stack:
 			run_movement(direction)
-			parent.add_stack_hud(direction)
 			return
 
 
+# Manual movement
 func run_movement(direction):
 	is_running = true
 	
 	handle_move(direction)
 	yield(self, "move_done")
 	
-	move_stack.append(direction)
-	is_running = false
-	
 	if is_winning:
 		Globals.emit_signal("next_level")
 	
 	if is_falling:
 		Globals.emit_signal("reset_level")
+	
+	move_stack.append(direction)
+	
+	var hud_tween : Tween= parent.add_stack_hud(direction)
+	yield(hud_tween, "tween_all_completed")
+	
+	is_running = false
 
 
 func run_undo():
@@ -62,17 +66,16 @@ func run_undo():
 	handle_move(direction)
 	yield(self, "move_done")
 	
-	parent.remove_stack_hud('back')
-	yield(get_tree(), "idle_frame")
-	
-	is_running = false
-	
 	if is_winning:
 		Globals.emit_signal("next_level")
 	
 	if is_falling:
 		Globals.emit_signal("reset_level")
-
+	
+	parent.remove_stack_hud('back')
+	yield(parent, "remove_stack_done")
+	
+	is_running = false
 
 func run_stack():
 	is_running = true
@@ -86,17 +89,15 @@ func run_stack():
 		if is_falling: break
 		
 		parent.remove_stack_hud()
-		yield(get_tree(), "idle_frame")
-		
-		yield(get_tree().create_timer(.5), "timeout")
-		
-	is_running = false
+		yield(parent, "remove_stack_done")
 	
 	if is_winning:
 		Globals.emit_signal("next_level")
 	
 	if is_falling:
 		Globals.emit_signal("reset_level")
+	
+	is_running = false
 
 
 func handle_move(direction):
@@ -153,3 +154,4 @@ func _on_reset_level():
 func _on_move_done(falling, winning):
 	is_falling = falling
 	is_winning = winning
+	

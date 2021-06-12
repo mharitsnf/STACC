@@ -9,6 +9,8 @@ export var max_stack = 3
 export (String) var current_path
 export (String) var next_scene
 
+signal remove_stack_done
+
 
 func _ready():
 	assert(current_path)
@@ -26,23 +28,35 @@ func check_win(pos):
 
 
 func add_stack_hud(direction):
-	var dir_idx = 0
-	match direction:
-		Vector2.UP:
-			dir_idx = 0
-		Vector2.DOWN:
-			dir_idx = 1
-		Vector2.LEFT:
-			dir_idx = 2
-		Vector2.RIGHT:
-			dir_idx = 3
+	var stack = $CanvasLayer/Control/Stack
 	
 	var direction_indicator = DIRECTION_INDICATOR.instance()
-	direction_indicator.direction = dir_idx
-	$CanvasLayer/Control/HBoxContainer.add_child(direction_indicator)
+	
+	match direction:
+		Vector2.UP: direction_indicator.arrow_direction = 0
+		Vector2.DOWN: direction_indicator.arrow_direction = 1
+		Vector2.RIGHT: direction_indicator.arrow_direction = 2
+		Vector2.LEFT: direction_indicator.arrow_direction = 3
+	
+	var stack_child_count = stack.get_child_count()
+	if stack_child_count > 0:
+		direction_indicator.rect_position = stack.get_child(stack_child_count - 1).rect_position + Vector2(32, -32)
+	else:
+		direction_indicator.rect_position -= Vector2(0, 32)
+	
+	stack.add_child(direction_indicator)
+	return direction_indicator.get_node("Tween")
 
 
-func remove_stack_hud(target = 'front'):
-	var idx = $CanvasLayer/Control/HBoxContainer.get_child_count() - 1 if target == 'back' else 0
-	var indicator = $CanvasLayer/Control/HBoxContainer.get_child(idx)
-	indicator.destroy()
+func remove_stack_hud(direction = 'front'):
+	var stack = $CanvasLayer/Control/Stack
+	var idx = stack.get_child_count() - 1 if direction == 'back' else 0
+	
+	var indicator = stack.get_child(idx)
+	indicator.remove()
+	yield(indicator.get_node("Tween"), "tween_all_completed")
+	
+	indicator.queue_free()
+	yield(get_tree(), "idle_frame")
+	
+	emit_signal("remove_stack_done")
