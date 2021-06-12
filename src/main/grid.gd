@@ -2,7 +2,15 @@ extends TileMap
 
 
 export var level_name = ''
-export var move_charge = 3
+export var max_stack = 3
+export (String) var level_path
+
+
+func _ready():
+	assert(level_path)
+	
+	Globals.current_level_path = level_path
+	$CanvasLayer/Control/Label.text = str(max_stack)
 
 
 func request_next_position(pos, direction):

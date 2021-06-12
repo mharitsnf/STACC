@@ -5,7 +5,7 @@ func _ready():
 	Globals.output_player = $Output/AnimationPlayer
 	Globals.viewport = $ViewportContainer/Viewport
 	
-	Globals.connect("reset_level", self, '_on_reset_level')
+	var _e = Globals.connect("reset_level", self, '_on_reset_level')
 
 func _on_reset_level():
 	Globals.output_player.play('hide')

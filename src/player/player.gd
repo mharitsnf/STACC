@@ -5,7 +5,6 @@ enum { Empty = -1, Ground, Obstacle }
 
 onready var parent : TileMap = get_parent()
 onready var spawn_pos = parent.get_node("SpawnPosition")
-onready var current_charge = parent.move_charge
 
 var move_stack = []
 var is_running = false
@@ -14,19 +13,20 @@ var is_falling = false
 signal move_done
 
 func _ready():
-	connect("move_done", self, "_on_move_done")
-	Globals.connect("reset_level", self, "_on_reset_level")
+	var _e1 = connect("move_done", self, "_on_move_done")
+	var _e2 = Globals.connect("reset_level", self, "_on_reset_level")
+	
 	position = spawn_pos.position
 
 
-func _process(delta):
-	if current_charge > 0 and not is_running:
+func _process(_delta):
+	if not is_running:
 		if Input.is_action_just_pressed("run_stack"):
 			run_stack()
 			return
 	
 		var direction = get_input_direction()
-		if direction and current_charge > 0:
+		if direction and move_stack.size() < parent.max_stack:
 			run_movement(direction)
 			return
 
@@ -38,7 +38,6 @@ func run_movement(direction):
 	yield(self, "move_done")
 	
 	move_stack.append(direction)
-	current_charge -= 1
 	is_running = false
 	
 	if is_falling:
@@ -56,9 +55,8 @@ func run_stack():
 		
 		if is_falling: break
 		
-		yield(get_tree().create_timer(.5), "timeout")
+#		yield(get_tree().create_timer(.2), "timeout")
 		
-	current_charge -= 1
 	is_running = false
 	
 	if is_falling:
