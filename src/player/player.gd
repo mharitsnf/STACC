@@ -30,7 +30,7 @@ func _process(_delta):
 			Globals.emit_signal("reset_level")
 			return
 		
-		if Input.is_action_just_pressed("run_stack"):
+		if Input.is_action_just_pressed("run_stack") and move_stack.size() > 0:
 			run_stack()
 			return
 		
@@ -91,14 +91,20 @@ func run_undo():
 	grid.remove_stack_hud('back')
 	yield(grid, "remove_stack_done")
 	
-	match current_pos:
-		CW:
-			rotate_stack('CCW')
-			yield(grid, 'rotate_done')
-		
-		CCW:
-			rotate_stack('CW')
-			yield(grid, 'rotate_done')
+	if direction != Vector2.ZERO:
+		match current_pos:
+			CW:
+				var rotate_audio = $AudioController.play_step_on_rotator()
+				yield(rotate_audio, 'finished')
+				rotate_stack('CCW')
+				yield(grid, 'rotate_done')
+			
+			CCW:
+				var rotate_audio = $AudioController.play_step_on_rotator()
+				yield(rotate_audio, 'finished')
+				
+				rotate_stack('CW')
+				yield(grid, 'rotate_done')
 	
 	if is_falling:
 		Globals.emit_signal("reset_level")
@@ -168,23 +174,31 @@ func handle_move(direction, run_type):
 		
 		CW:
 			if run_type != 'stack':
-				$AudioController.play_walk()
+				var walk_audio = $AudioController.play_walk()
+				yield(walk_audio, 'finished')
 				
 			move_to(direction)
 			yield($Tween, "tween_all_completed")
 			
 			if run_type != 'undo':
+				var rotate_audio = $AudioController.play_step_on_rotator()
+				yield(rotate_audio, "finished")
+				
 				rotate_stack('CW')
 				yield(grid, 'rotate_done')
 		
 		CCW:
 			if run_type != 'stack':
-				$AudioController.play_walk()
-				
+				var walk_audio = $AudioController.play_walk()
+				yield(walk_audio, 'finished')
+			
 			move_to(direction)
 			yield($Tween, "tween_all_completed")
 			
 			if run_type != 'undo':
+				var rotate_audio = $AudioController.play_step_on_rotator()
+				yield(rotate_audio, "finished")
+				
 				rotate_stack('CCW')
 				yield(grid, 'rotate_done')
 		

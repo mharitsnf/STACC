@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://src/levels/LevelBase.tscn" type="PackedScene" id=1]
+
+[node name="Level11" instance=ExtResource( 1 )]
+level_name = "Level 11"
+current_path = "res://src/levels/Level11.tscn"
+next_scene = "res://src/levels/Level12.tscn"
+
+[node name="Grid" parent="." index="0"]
+tile_data = PoolIntArray( 65543, 0, 0, 131079, 0, 0, 196615, 0, 0, 262151, 2, 0, 327687, 0, 0, 327688, 0, 0, 327689, 0, 0, 393224, 0, 0, 393225, 0, 0, 458759, 0, 0, 458760, 0, 0 )
+
+[node name="Goal" parent="." index="2"]
+position = Vector2( 224, 32 )
+
+[node name="SpawnPosition" parent="." index="4"]
+position = Vector2( 224, 224 )

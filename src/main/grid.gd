@@ -1,7 +1,10 @@
 extends TileMap
 
 
+enum { Empty = -1, Ground, Obstacle, CW, CCW } # ijo CW oren CCW
+
 const DIRECTION_INDICATOR = preload("res://src/HUD/DirectionIndicator.tscn")
+const TILE_ASSET = preload("res://src/asset scene/Tile.tscn")
 
 var label_text = 'moves - '
 
@@ -10,15 +13,35 @@ export var hud_x_offset = 8
 
 onready var parent = get_parent()
 onready var label = parent.get_node("CanvasLayer/Control/Label")
+onready var level_name = parent.get_node("CanvasLayer/Control/LevelName")
 onready var stack = parent.get_node("CanvasLayer/Control/Stack")
 onready var goal = parent.get_node("Goal")
+onready var tiles = parent.get_node("Tiles")
 
 signal remove_stack_done
 signal rotate_done
 
 
 func _ready():
-	label.text = label_text + str(max_stack)
+	for cell in get_used_cells():
+		var gl_pos = map_to_world(cell)
+		var type = get_cellv(cell)
+		
+		var tile = TILE_ASSET.instance()
+		tile.position = gl_pos
+		
+		match type:
+			Ground: tile.set_tile('ground') 
+			Obstacle: tile.set_tile('obstacle') 
+			CW: tile.set_tile('cw')
+			CCW: tile.set_tile('ccw')
+		
+		tiles.add_child(tile)
+	
+	modulate = Color(1, 1, 1, 0)
+	
+	label.text = str(max_stack)
+	level_name.text = parent.level_name
 
 
 func check_next_position(pos, direction):
@@ -45,7 +68,11 @@ func add_stack_hud(direction):
 	
 	stack.add_child(direction_indicator)
 	
-	label.text = label_text + str(max_stack - stack.get_child_count())
+	var move_count = max_stack - stack.get_child_count()
+	if move_count > 0:
+		label.text = str(max_stack - stack.get_child_count())
+	else:
+		label.text = 'LIMIT'
 	
 	return direction_indicator.get_node("Tween")
 
@@ -60,7 +87,11 @@ func remove_stack_hud(direction = 'front'):
 	indicator.queue_free()
 	yield(get_tree(), "idle_frame")
 	
-	label.text = label_text + str(max_stack - stack.get_child_count())
+	var move_count = max_stack - stack.get_child_count()
+	if move_count > 0:
+		label.text = str(max_stack - stack.get_child_count())
+	else:
+		label.text = 'LIMIT'
 	
 	emit_signal("remove_stack_done")
 

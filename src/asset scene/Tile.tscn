@@ -1,0 +1,38 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://assets/tiles1.png" type="Texture" id=1]
+[ext_resource path="res://assets/tiles2.png" type="Texture" id=2]
+[ext_resource path="res://assets/tiles4.png" type="Texture" id=3]
+[ext_resource path="res://assets/tiles3.png" type="Texture" id=4]
+[ext_resource path="res://src/asset scene/tile.gd" type="Script" id=5]
+
+[sub_resource type="SpriteFrames" id=1]
+animations = [ {
+"frames": [ ExtResource( 1 ) ],
+"loop": true,
+"name": "ground",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 4 ) ],
+"loop": true,
+"name": "cw",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 3 ) ],
+"loop": true,
+"name": "ccw",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 2 ) ],
+"loop": true,
+"name": "obstacle",
+"speed": 5.0
+} ]
+
+[node name="Tile" type="Node2D"]
+script = ExtResource( 5 )
+
+[node name="AnimatedSprite" type="AnimatedSprite" parent="."]
+position = Vector2( 16, 4 )
+frames = SubResource( 1 )
+animation = "ground"
