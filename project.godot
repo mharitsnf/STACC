@@ -13,16 +13,28 @@ _global_script_classes=[ {
 "class": "Actor",
 "language": "GDScript",
 "path": "res://src/actors/actor.gd"
+}, {
+"base": "Node2D",
+"class": "LevelScreen",
+"language": "GDScript",
+"path": "res://src/levels/level_base.gd"
+}, {
+"base": "Control",
+"class": "MenuScreen",
+"language": "GDScript",
+"path": "res://src/HUD/menu_screen.gd"
 } ]
 _global_script_class_icons={
-"Actor": ""
+"Actor": "",
+"LevelScreen": "",
+"MenuScreen": ""
 }
 
 [application]
 
 config/name="GMTK 2021"
 run/main_scene="res://src/main/Game.tscn"
-config/icon="res://icon.png"
+config/icon="res://new_icon.png"
 
 [autoload]
 

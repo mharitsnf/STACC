@@ -7,11 +7,17 @@ level_name = "Level 1"
 current_path = "res://src/levels/Level1.tscn"
 next_scene = "res://src/levels/Level2.tscn"
 
-[node name="Grid" parent="." index="0"]
+[node name="BG" parent="Background" index="0"]
+self_modulate = Color( 0.501961, 0.501961, 0.501961, 1 )
+
+[node name="Label" parent="CanvasLayer/Control/Frame" index="2"]
+custom_colors/font_color = Color( 0.968627, 0.356863, 0.952941, 1 )
+
+[node name="Grid" parent="." index="2"]
 tile_data = PoolIntArray( 196611, 0, 0, 196612, 0, 0, 196613, 0, 0, 196614, 0, 0, 196615, 0, 0, 196616, 0, 0 )
 
-[node name="Goal" parent="." index="2"]
+[node name="Goal" parent="." index="4"]
 position = Vector2( 256, 96 )
 
-[node name="SpawnPosition" parent="." index="4"]
+[node name="SpawnPosition" parent="." index="6"]
 position = Vector2( 96, 96 )

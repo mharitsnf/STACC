@@ -4,10 +4,10 @@
 [ext_resource path="res://src/HUD/direction_indicator.gd" type="Script" id=2]
 
 [node name="DirectionIndicator" type="TextureRect"]
-anchor_right = 0.062
-anchor_bottom = 0.062
-margin_right = 0.255999
-margin_bottom = 0.255999
+anchor_right = 0.067
+anchor_bottom = 0.119
+margin_right = -2.144
+margin_bottom = -15.134
 rect_pivot_offset = Vector2( 16, 16 )
 texture = ExtResource( 1 )
 stretch_mode = 6

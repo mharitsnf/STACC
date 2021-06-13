@@ -9,12 +9,12 @@ const TILE_ASSET = preload("res://src/asset scene/Tile.tscn")
 var label_text = 'moves - '
 
 export var max_stack = 3
-export var hud_x_offset = 8
+export var hud_y_offset = 8
 
 onready var parent = get_parent()
-onready var label = parent.get_node("CanvasLayer/Control/Label")
+onready var label = parent.get_node("CanvasLayer/Control/Frame/Label")
 onready var level_name = parent.get_node("CanvasLayer/Control/LevelName")
-onready var stack = parent.get_node("CanvasLayer/Control/Stack")
+onready var stack = parent.get_node("CanvasLayer/Control/Frame/Stack")
 onready var goal = parent.get_node("Goal")
 onready var tiles = parent.get_node("Tiles")
 
@@ -62,9 +62,10 @@ func add_stack_hud(direction):
 	
 	var stack_child_count = stack.get_child_count()
 	if stack_child_count > 0:
-		direction_indicator.rect_position = stack.get_child(stack_child_count - 1).rect_position + Vector2(32 + hud_x_offset, -32)
+		var prev_child = stack.get_child(stack_child_count - 1)
+		direction_indicator.rect_position = prev_child.rect_position + Vector2(-prev_child.rect_size.x, -(prev_child.rect_size.y + hud_y_offset))
 	else:
-		direction_indicator.rect_position -= Vector2(0, 32)
+		direction_indicator.rect_position = Vector2(- stack.rect_size.x, stack.rect_size.y - stack.rect_size.x)
 	
 	stack.add_child(direction_indicator)
 	
@@ -72,7 +73,7 @@ func add_stack_hud(direction):
 	if move_count > 0:
 		label.text = str(max_stack - stack.get_child_count())
 	else:
-		label.text = 'LIMIT'
+		label.text = 'JETPACK LIMIT'
 	
 	return direction_indicator.get_node("Tween")
 
@@ -91,7 +92,7 @@ func remove_stack_hud(direction = 'front'):
 	if move_count > 0:
 		label.text = str(max_stack - stack.get_child_count())
 	else:
-		label.text = 'LIMIT'
+		label.text = 'JETPACK LIMIT'
 	
 	emit_signal("remove_stack_done")
 

@@ -21,6 +21,7 @@ func _ready():
 	var _e1 = connect("move_done", self, "_on_move_done")
 	var _e2 = Globals.connect("reset_level", self, "_on_reset_level")
 	
+	$AnimationPlayer.play("idle")
 	position = spawn_pos.position
 
 
@@ -120,7 +121,8 @@ func run_undo():
 func run_stack():
 	is_running = true
 	
-	$AudioController.play_use_stack()
+	$AnimationPlayer.play("take off")
+	yield($AnimationPlayer, "animation_finished")
 	
 	while not move_stack.empty():
 		var direction = move_stack.pop_front()
@@ -142,6 +144,9 @@ func run_stack():
 		Globals.emit_signal("next_level")
 		return
 	
+	$AnimationPlayer.play("landing")
+	yield($AnimationPlayer, "animation_finished")
+	
 	is_running = false
 
 
@@ -158,26 +163,18 @@ func handle_move(direction, run_type):
 	match next_cell_type:
 		Empty:
 			# Fall
-			move_to(direction)
+			move_to(direction, run_type)
 			yield($Tween, "tween_all_completed")
 			fall()
 			yield($AnimationPlayer, "animation_finished")
 			falling = true
 		
 		Ground:
-			# Move and run move animation
-			if run_type != 'stack':
-				$AudioController.play_walk()
-			
-			move_to(direction)
+			move_to(direction, run_type)
 			yield($Tween, "tween_all_completed")
 		
 		CW:
-			if run_type != 'stack':
-				var walk_audio = $AudioController.play_walk()
-				yield(walk_audio, 'finished')
-				
-			move_to(direction)
+			move_to(direction, run_type)
 			yield($Tween, "tween_all_completed")
 			
 			if run_type != 'undo':
@@ -188,11 +185,7 @@ func handle_move(direction, run_type):
 				yield(grid, 'rotate_done')
 		
 		CCW:
-			if run_type != 'stack':
-				var walk_audio = $AudioController.play_walk()
-				yield(walk_audio, 'finished')
-			
-			move_to(direction)
+			move_to(direction, run_type)
 			yield($Tween, "tween_all_completed")
 			
 			if run_type != 'undo':
@@ -205,16 +198,22 @@ func handle_move(direction, run_type):
 		Obstacle:
 			$AudioController.play_hit_obstacle()
 			
-			hit_obstacle()
+			hit_obstacle(run_type)
 			yield($AnimationPlayer, "animation_finished")
 	
 	var winning = grid.check_win(position)
 	emit_signal("move_done", falling, winning)
 
 
-func move_to(direction):
+func move_to(direction, run_type):
 	var new_pos = grid.map_to_world(grid.world_to_map(position) + direction)
-	$Tween.interpolate_property(self, 'position', position, new_pos, .3, Tween.TRANS_EXPO, Tween.EASE_OUT)
+	
+	$Sprite.flip_h = grid.world_to_map(position).x > (grid.world_to_map(position) + direction).x
+	
+	if run_type != 'stack':
+		$AnimationPlayer.play("walk")
+	
+	$Tween.interpolate_property(self, 'position', position, new_pos, .5, Tween.TRANS_LINEAR)
 	$Tween.start()
 
 
@@ -227,12 +226,15 @@ func rotate_stack(direction):
 	grid.rotate_stack_hud(direction)
 
 
-func hit_obstacle():
-	$AnimationPlayer.play("bump")
+func hit_obstacle(run_type):
+	if run_type == 'stack':
+		$AnimationPlayer.play("bump jetpack")
+	else:
+		$AnimationPlayer.play("bump")
 
 
 func fall():
-	$AnimationPlayer.play("fall")
+	$AnimationPlayer.play("falling")
 
 
 func get_input_direction():
@@ -251,4 +253,10 @@ func _on_move_done(falling, winning):
 	is_winning = winning
 
 
-
+func _on_AnimationPlayer_animation_finished(anim_name):
+	match anim_name:
+		'walk', 'landing', 'bump':
+			$AnimationPlayer.play("idle")
+		
+		'take off', 'bump jetpack':
+			$AnimationPlayer.play("flying")
