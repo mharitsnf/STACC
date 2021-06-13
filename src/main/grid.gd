@@ -26,6 +26,10 @@ func request_next_position(pos, direction):
 	return get_cellv(world_to_map(pos) + direction)
 
 
+func check_current_position(pos):
+	return get_cellv(world_to_map(pos))
+
+
 func check_win(pos):
 	return world_to_map(pos) == world_to_map($Goal.position)
 

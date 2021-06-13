@@ -7,6 +7,7 @@ onready var parent : TileMap = get_parent()
 onready var spawn_pos = parent.get_node("SpawnPosition")
 
 var move_stack = []
+
 var is_running = false
 var is_falling = false
 var is_winning = false
@@ -24,7 +25,6 @@ func _ready():
 func _process(_delta):
 	if not is_running:
 		if Input.is_action_just_pressed("run_stack"):
-			print(move_stack)
 			run_stack()
 			return
 		
@@ -50,7 +50,7 @@ func run_movement(direction):
 	
 	move_stack.append(direction)
 	
-	var hud_tween : Tween= parent.add_stack_hud(direction)
+	var hud_tween : Tween = parent.add_stack_hud(direction)
 	yield(hud_tween, "tween_all_completed")
 	
 	is_running = false
@@ -62,16 +62,27 @@ func run_movement(direction):
 func run_undo():
 	is_running = true
 	
+	var current_pos = parent.check_current_position(position)
+	
 	var direction = -1 * move_stack.pop_back()
 	
 	handle_move(direction)
 	yield(self, "move_done")
 	
-	if is_falling:
-		Globals.emit_signal("reset_level")
-	
 	parent.remove_stack_hud('back')
 	yield(parent, "remove_stack_done")
+	
+	match current_pos:
+		CW:
+			rotate_stack('CCW')
+			yield(parent, 'rotate_done')
+		
+		CCW:
+			rotate_stack('CW')
+			yield(parent, 'rotate_done')
+	
+	if is_falling:
+		Globals.emit_signal("reset_level")
 	
 	is_running = false
 	
@@ -84,7 +95,6 @@ func run_stack():
 	
 	while not move_stack.empty():
 		var direction = move_stack.pop_front()
-		print(direction)
 		
 		handle_move(direction)
 		yield(self, "move_done")
@@ -103,7 +113,7 @@ func run_stack():
 		Globals.emit_signal("next_level")
 
 
-func handle_move(direction, undoing = false):
+func handle_move(direction):
 	var next_cell_type = parent.request_next_position(position, direction)
 	var falling = false
 	
@@ -156,7 +166,6 @@ func rotate_stack(direction):
 	for i in range(move_stack.size()):
 		move_stack[i] = move_stack[i].rotated(deg2rad(rotate_amount))
 	
-	print(move_stack)
 	
 	parent.rotate_stack_hud(direction)
 

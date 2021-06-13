@@ -4,7 +4,7 @@
 [ext_resource path="res://src/main/root.gd" type="Script" id=4]
 [ext_resource path="res://assets/transition.png" type="Texture" id=5]
 
-[sub_resource type="Shader" id=2]
+[sub_resource type="Shader" id=1]
 code = "shader_type canvas_item;
 render_mode unshaded;
 
@@ -22,17 +22,17 @@ void fragment()
 	COLOR = mix(screen, standby_color, mix_val);
 }"
 
-[sub_resource type="ShaderMaterial" id=3]
-shader = SubResource( 2 )
+[sub_resource type="ShaderMaterial" id=2]
+shader = SubResource( 1 )
 shader_param/cutoff = 1.0
 shader_param/smooth_size = 0.5
 shader_param/standby_color = null
 shader_param/mask = ExtResource( 5 )
 
-[sub_resource type="ViewportTexture" id=4]
+[sub_resource type="ViewportTexture" id=3]
 viewport_path = NodePath("ViewportContainer/Viewport")
 
-[sub_resource type="Animation" id=5]
+[sub_resource type="Animation" id=4]
 resource_name = "hide"
 length = 0.5
 tracks/0/type = "value"
@@ -48,7 +48,7 @@ tracks/0/keys = {
 "values": [ 1.0, 0.0 ]
 }
 
-[sub_resource type="Animation" id=6]
+[sub_resource type="Animation" id=5]
 resource_name = "show"
 length = 0.5
 tracks/0/type = "value"
@@ -83,15 +83,15 @@ render_target_update_mode = 3
 [node name="Test1" parent="ViewportContainer/Viewport" instance=ExtResource( 1 )]
 
 [node name="Output" type="TextureRect" parent="."]
-material = SubResource( 3 )
+material = SubResource( 2 )
 margin_right = 40.0
 margin_bottom = 40.0
-texture = SubResource( 4 )
+texture = SubResource( 3 )
 flip_v = true
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Output"]
-anims/hide = SubResource( 5 )
-anims/show = SubResource( 6 )
+anims/hide = SubResource( 4 )
+anims/show = SubResource( 5 )

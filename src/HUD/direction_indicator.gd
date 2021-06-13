@@ -17,5 +17,5 @@ func remove():
 
 func rotate(direction):
 	var rotate_amount = 90 if direction == 'CW' else -90
-	$Tween.interpolate_property(self, 'rect_rotation', rect_rotation, rect_rotation + rotate_amount, .8, Tween.TRANS_ELASTIC, Tween.EASE_OUT)
+	$Tween.interpolate_property(self, 'rect_rotation', rect_rotation, rect_rotation + rotate_amount, .6, Tween.TRANS_CUBIC, Tween.EASE_OUT)
 	$Tween.start()
