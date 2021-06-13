@@ -6,6 +6,7 @@ const DIRECTION_INDICATOR = preload("res://src/HUD/DirectionIndicator.tscn")
 var label_text = 'moves - '
 
 export var max_stack = 3
+export var hud_x_offset = 8
 
 onready var parent = get_parent()
 onready var label = parent.get_node("CanvasLayer/Control/Label")
@@ -20,7 +21,7 @@ func _ready():
 	label.text = label_text + str(max_stack)
 
 
-func request_next_position(pos, direction):
+func check_next_position(pos, direction):
 	return get_cellv(world_to_map(pos) + direction)
 
 
@@ -38,7 +39,7 @@ func add_stack_hud(direction):
 	
 	var stack_child_count = stack.get_child_count()
 	if stack_child_count > 0:
-		direction_indicator.rect_position = stack.get_child(stack_child_count - 1).rect_position + Vector2(32, -32)
+		direction_indicator.rect_position = stack.get_child(stack_child_count - 1).rect_position + Vector2(32 + hud_x_offset, -32)
 	else:
 		direction_indicator.rect_position -= Vector2(0, 32)
 	

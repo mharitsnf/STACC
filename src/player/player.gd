@@ -7,6 +7,7 @@ onready var parent = get_parent()
 onready var grid : TileMap = parent.get_node("Grid")
 onready var spawn_pos = parent.get_node("SpawnPosition")
 
+var undo_stack = []
 var move_stack = []
 
 var is_running = false
@@ -46,23 +47,32 @@ func _process(_delta):
 # Manual movement
 func run_movement(direction):
 	is_running = true
+	var prev_pos = position
 	
-	handle_move(direction)
+	handle_move(direction, 'manual')
 	yield(self, "move_done")
+	
+	var current_pos = position
 	
 	if is_falling:
 		Globals.emit_signal("reset_level")
 		return
+		
+	if is_winning:
+		Globals.emit_signal("next_level")
+		return
 	
 	move_stack.append(direction)
+	
+	if prev_pos == current_pos:
+		undo_stack.append(Vector2.ZERO)
+	else:
+		undo_stack.append(direction)
 	
 	var hud_tween : Tween = grid.add_stack_hud(direction)
 	yield(hud_tween, "tween_all_completed")
 	
 	is_running = false
-	
-	if is_winning:
-		Globals.emit_signal("next_level")
 
 
 func run_undo():
@@ -70,9 +80,12 @@ func run_undo():
 	
 	var current_pos = grid.check_current_position(position)
 	
-	var direction = -1 * move_stack.pop_back()
+	var real_direction = undo_stack.pop_back()
+	move_stack.pop_back()
 	
-	handle_move(direction)
+	var direction = -1 * real_direction
+	
+	handle_move(direction, 'undo')
 	yield(self, "move_done")
 	
 	grid.remove_stack_hud('back')
@@ -91,19 +104,23 @@ func run_undo():
 		Globals.emit_signal("reset_level")
 		return
 	
-	is_running = false
-	
 	if is_winning:
 		Globals.emit_signal("next_level")
+		return
+	
+	is_running = false
 
 
 func run_stack():
 	is_running = true
 	
+	$AudioController.play_use_stack()
+	
 	while not move_stack.empty():
 		var direction = move_stack.pop_front()
+		undo_stack.pop_front()
 		
-		handle_move(direction)
+		handle_move(direction, 'stack')
 		yield(self, "move_done")
 		
 		if is_falling: break
@@ -115,14 +132,21 @@ func run_stack():
 		Globals.emit_signal("reset_level")
 		return
 	
-	is_running = false
-	
 	if is_winning:
 		Globals.emit_signal("next_level")
+		return
+	
+	is_running = false
 
 
-func handle_move(direction):
-	var next_cell_type = grid.request_next_position(position, direction)
+func handle_move(direction, run_type):
+	var next_cell_type
+	
+	if direction == Vector2.ZERO:
+		next_cell_type = Obstacle
+	else:
+		next_cell_type = grid.check_next_position(position, direction)
+	
 	var falling = false
 	
 	match next_cell_type:
@@ -136,25 +160,37 @@ func handle_move(direction):
 		
 		Ground:
 			# Move and run move animation
-			$AudioController.play_walk()
+			if run_type != 'stack':
+				$AudioController.play_walk()
+			
 			move_to(direction)
 			yield($Tween, "tween_all_completed")
 		
 		CW:
-			$AudioController.play_walk()
+			if run_type != 'stack':
+				$AudioController.play_walk()
+				
 			move_to(direction)
 			yield($Tween, "tween_all_completed")
-			rotate_stack('CW')
-			yield(grid, 'rotate_done')
+			
+			if run_type != 'undo':
+				rotate_stack('CW')
+				yield(grid, 'rotate_done')
 		
 		CCW:
-			$AudioController.play_walk()
+			if run_type != 'stack':
+				$AudioController.play_walk()
+				
 			move_to(direction)
 			yield($Tween, "tween_all_completed")
-			rotate_stack('CCW')
-			yield(grid, 'rotate_done')
+			
+			if run_type != 'undo':
+				rotate_stack('CCW')
+				yield(grid, 'rotate_done')
 		
 		Obstacle:
+			$AudioController.play_hit_obstacle()
+			
 			hit_obstacle()
 			yield($AnimationPlayer, "animation_finished")
 	
