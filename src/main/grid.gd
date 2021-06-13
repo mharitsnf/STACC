@@ -5,21 +5,19 @@ const DIRECTION_INDICATOR = preload("res://src/HUD/DirectionIndicator.tscn")
 
 var label_text = 'moves - '
 
-export var level_name = ''
 export var max_stack = 3
 
-export (String) var current_path
-export (String) var next_scene
+onready var parent = get_parent()
+onready var label = parent.get_node("CanvasLayer/Control/Label")
+onready var stack = parent.get_node("CanvasLayer/Control/Stack")
+onready var goal = parent.get_node("Goal")
 
 signal remove_stack_done
 signal rotate_done
 
 
 func _ready():
-	assert(current_path)
-	
-	Globals.current_level_path = current_path
-	$CanvasLayer/Control/Label.text = label_text + str(max_stack)
+	label.text = label_text + str(max_stack)
 
 
 func request_next_position(pos, direction):
@@ -31,13 +29,10 @@ func check_current_position(pos):
 
 
 func check_win(pos):
-	return world_to_map(pos) == world_to_map($Goal.position)
+	return world_to_map(pos) == world_to_map(goal.position)
 
 
 func add_stack_hud(direction):
-	var stack = $CanvasLayer/Control/Stack
-	var label = $CanvasLayer/Control/Label
-	
 	var direction_indicator = DIRECTION_INDICATOR.instance()
 	direction_indicator.rect_rotation = int(rad2deg(Vector2.ZERO.angle_to_point(direction))) - 90
 	
@@ -55,9 +50,6 @@ func add_stack_hud(direction):
 
 
 func remove_stack_hud(direction = 'front'):
-	var stack = $CanvasLayer/Control/Stack
-	var label = $CanvasLayer/Control/Label
-	
 	var idx = stack.get_child_count() - 1 if direction == 'back' else 0
 	
 	var indicator = stack.get_child(idx)
@@ -73,8 +65,6 @@ func remove_stack_hud(direction = 'front'):
 
 
 func rotate_stack_hud(direction):
-	var stack = $CanvasLayer/Control/Stack
-	
 	for child in stack.get_children():
 		child.rotate(direction)
 	

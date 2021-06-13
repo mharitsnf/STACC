@@ -3,7 +3,8 @@ extends Node2D
 
 enum { Empty = -1, Ground, Obstacle, CW, CCW } # ijo CW oren CCW
 
-onready var parent : TileMap = get_parent()
+onready var parent = get_parent()
+onready var grid : TileMap = parent.get_node("Grid")
 onready var spawn_pos = parent.get_node("SpawnPosition")
 
 var move_stack = []
@@ -23,7 +24,11 @@ func _ready():
 
 
 func _process(_delta):
-	if not is_running:
+	if not is_running and not is_winning and not is_falling:
+		if Input.is_action_just_pressed("reset_level"):
+			Globals.emit_signal("reset_level")
+			return
+		
 		if Input.is_action_just_pressed("run_stack"):
 			run_stack()
 			return
@@ -33,7 +38,7 @@ func _process(_delta):
 			return
 	
 		var direction = get_input_direction()
-		if direction and move_stack.size() < parent.max_stack:
+		if direction and move_stack.size() < grid.max_stack:
 			run_movement(direction)
 			return
 
@@ -47,10 +52,11 @@ func run_movement(direction):
 	
 	if is_falling:
 		Globals.emit_signal("reset_level")
+		return
 	
 	move_stack.append(direction)
 	
-	var hud_tween : Tween = parent.add_stack_hud(direction)
+	var hud_tween : Tween = grid.add_stack_hud(direction)
 	yield(hud_tween, "tween_all_completed")
 	
 	is_running = false
@@ -62,27 +68,28 @@ func run_movement(direction):
 func run_undo():
 	is_running = true
 	
-	var current_pos = parent.check_current_position(position)
+	var current_pos = grid.check_current_position(position)
 	
 	var direction = -1 * move_stack.pop_back()
 	
 	handle_move(direction)
 	yield(self, "move_done")
 	
-	parent.remove_stack_hud('back')
-	yield(parent, "remove_stack_done")
+	grid.remove_stack_hud('back')
+	yield(grid, "remove_stack_done")
 	
 	match current_pos:
 		CW:
 			rotate_stack('CCW')
-			yield(parent, 'rotate_done')
+			yield(grid, 'rotate_done')
 		
 		CCW:
 			rotate_stack('CW')
-			yield(parent, 'rotate_done')
+			yield(grid, 'rotate_done')
 	
 	if is_falling:
 		Globals.emit_signal("reset_level")
+		return
 	
 	is_running = false
 	
@@ -101,11 +108,12 @@ func run_stack():
 		
 		if is_falling: break
 		
-		parent.remove_stack_hud()
-		yield(parent, "remove_stack_done")
+		grid.remove_stack_hud()
+		yield(grid, "remove_stack_done")
 	
 	if is_falling:
 		Globals.emit_signal("reset_level")
+		return
 	
 	is_running = false
 	
@@ -114,7 +122,7 @@ func run_stack():
 
 
 func handle_move(direction):
-	var next_cell_type = parent.request_next_position(position, direction)
+	var next_cell_type = grid.request_next_position(position, direction)
 	var falling = false
 	
 	match next_cell_type:
@@ -137,25 +145,25 @@ func handle_move(direction):
 			move_to(direction)
 			yield($Tween, "tween_all_completed")
 			rotate_stack('CW')
-			yield(parent, 'rotate_done')
+			yield(grid, 'rotate_done')
 		
 		CCW:
 			$AudioController.play_walk()
 			move_to(direction)
 			yield($Tween, "tween_all_completed")
 			rotate_stack('CCW')
-			yield(parent, 'rotate_done')
+			yield(grid, 'rotate_done')
 		
 		Obstacle:
 			hit_obstacle()
 			yield($AnimationPlayer, "animation_finished")
 	
-	var winning = parent.check_win(position)
+	var winning = grid.check_win(position)
 	emit_signal("move_done", falling, winning)
 
 
 func move_to(direction):
-	var new_pos = parent.map_to_world(parent.world_to_map(position) + direction)
+	var new_pos = grid.map_to_world(grid.world_to_map(position) + direction)
 	$Tween.interpolate_property(self, 'position', position, new_pos, .3, Tween.TRANS_EXPO, Tween.EASE_OUT)
 	$Tween.start()
 
@@ -166,8 +174,7 @@ func rotate_stack(direction):
 	for i in range(move_stack.size()):
 		move_stack[i] = move_stack[i].rotated(deg2rad(rotate_amount))
 	
-	
-	parent.rotate_stack_hud(direction)
+	grid.rotate_stack_hud(direction)
 
 
 func hit_obstacle():
