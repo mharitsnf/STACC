@@ -25,13 +25,15 @@ func _on_reset_level():
 		Globals.output_player.play('hide')
 		yield(Globals.output_player, "animation_finished")
 		
+		var current_level_path = mounted_level.current_path
+		
 		mounted_level.queue_free()
 		yield(get_tree(), "idle_frame")
 		
-		var reloaded_level = load(Globals.current_level_path).instance()
+		var reloaded_level = load(current_level_path).instance()
 		Globals.viewport.add_child(reloaded_level)
-		mounted_level = reloaded_level
 		yield(get_tree(), "idle_frame")
+		mounted_level = reloaded_level
 		
 		check_play_song()
 		
@@ -49,13 +51,14 @@ func _on_next_level():
 		yield(Globals.output_player, "animation_finished")
 		
 		var next_scene_path = mounted_level.next_scene
+		
 		mounted_level.queue_free()
 		yield(get_tree(), "idle_frame")
 		
 		var new_scene = load(next_scene_path).instance()
 		Globals.viewport.add_child(new_scene)
-		mounted_level = new_scene
 		yield(get_tree(), "idle_frame")
+		mounted_level = new_scene
 		
 		check_play_song()
 		
